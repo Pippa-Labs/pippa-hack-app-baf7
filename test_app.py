@@ -1,4 +1,4 @@
-"""Tests for Last Minute Gift Finder.
+"""Tests for Gift Dash.
 
 Every request goes through `App._fetch`, which each test replaces with a stub
 that answers from payloads shaped like the real Nominatim and Open-Meteo

@@ -1,4 +1,4 @@
-"""Last Minute Gift Finder.
+"""Gift Dash.
 
 Given a place and what a friend likes, list nearby shops that suit them and
 say whether each is open tonight or the next day.
