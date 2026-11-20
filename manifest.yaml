@@ -39,7 +39,7 @@ persistence: none
 # It does not decide who owns the app, and nothing in this file does. Pippa
 # Labs created this repository for your Pippa account, so every app published
 # from it is yours. docs/REVIEW_AND_SHARING.md is the whole story.
-app_author_name: ""
+app_author_name: "TwinklingTable"
 
 app:
   # Filled in for you. A new repository replaces this placeholder within a
@@ -55,7 +55,7 @@ app:
   # Hyphens are not valid in an app id anywhere. `git remote get-url origin`
   # tells you the repository name.
   id: hack.app_baf7
-  name: Days Until
+  name: Last Minute Gift Finder
   # The version you are pushing. Pippa keeps a copy of the code of every
   # version, so pushing a new version never changes an older one: the approved
   # version keeps working for everyone while you try the next.
@@ -75,8 +75,10 @@ app:
   # badge Pippa shows is parsed from "[via <name> <version> by <author name>]"
   # (the author name is `app_author_name` above) and splits on the first "by".
   summary: >-
-    Works out how many days there are until a date you name, and says which
-    day of the week it falls on.
+    Finds gift shops close to a place that suit what a friend likes, and
+    checks which are open tonight or the next day. It sends the place name to
+    OpenStreetMap and Open-Meteo to look up shops, opening hours and the local
+    time.
 
 # Who can install it. `personal` means a person's own Pippa.
 agent_types:
@@ -99,50 +101,81 @@ agent_types:
 #     "my calendar" belong to Pippa Diary; a phrase using them will lose.
 
 outcomes:
-  - id: days.until
-    summary: Count the days between now and a date, and name the weekday
+  - id: gift.shops_open
+    summary: >-
+      List gift-worthy shops close to a place that suit what a friend likes,
+      with how far away each is and when it is open tonight or the next day
     example_phrases:
-      - how many days until
-      - how long until
-      - how many sleeps until
-      - days left until
-      - what day of the week is
-    # What Pippa extracts from the user's message and hands you. A model reads
-    # `description` to do that extraction, so write it as an instruction to
-    # whoever is filling the field in.
+      - where can i buy a last minute gift near
+      - gift shops still open near
+      - find a present for my friend who likes
+      - last minute birthday present near
+      - which shops are open late for a present
+      - where can i get flowers or chocolates open late
+      - shops open in the morning to buy a present
+      - buy a gift for someone who loves
     inputs:
-      # `required: false`, although the app is useless without a date, and
-      # that is deliberate. A missing REQUIRED input is refused inside the
-      # runtime before your code runs, and the user is shown a message that
-      # blames your app for a question they asked perfectly reasonably. An
-      # optional input simply arrives absent, your code notices, and you
-      # raise an error that says something true. Keep `required: true` for
-      # inputs the extractor can always supply.
-      - name: date
+      - name: place
         type: string
         required: false
         description: >-
-          The target date, as the user wrote it — for example "25 December",
-          "2027-01-01" or "next Friday". If the message does not name a date,
+          Where to look for shops: a street, neighbourhood, town, landmark or
+          postcode, as the user wrote it, for example "Shoreditch, London" or
+          "BS1 4DJ". If the user only says "near me" or names no place,
           return an empty string rather than guessing.
+      - name: interests
+        type: string
+        required: false
+        description: >-
+          What the friend likes, hobbies or kinds of present wanted, as a
+          short comma-separated list in the user's words, for example
+          "books, coffee, plants". Return an empty string if the user does
+          not say what the friend likes. Never invent interests.
+      - name: when
+        type: string
+        required: false
+        description: >-
+          When the user wants to go shopping, in their words: for example
+          "now", "tonight", "tomorrow", "tomorrow morning" or a weekday such
+          as "Saturday". Return an empty string if they do not say.
       - name: timezone
         type: timezone
         required: false
-        description: The user's time zone, so "today" means their today.
-    # What you promise to return. Returning anything else is refused; omitting
-    # a declared field is refused too. Keep it small and specific.
+        description: The user's time zone, if known. Leave it out otherwise.
     output:
-      - name: days
+      - name: place_found
+        type: string
+        description: The place the shops were looked up around.
+      - name: local_time
+        type: string
+        description: The weekday and clock time at that place when asked.
+      - name: checked_for
+        type: string
+        description: The shopping window the opening hours were checked against.
+      - name: shops
+        type: array
+        item_type: string
+        description: >-
+          Up to eight shops, best first. Each line gives the name, the kind of
+          shop, the distance, the street, the opening status in the window and
+          which of the friend's interests it suits.
+      - name: open_count
         type: integer
-        description: How many whole days until the date. Negative if it has passed.
-      - name: target_date
-        type: string
-        description: The date you actually used, as YYYY-MM-DD.
-      - name: weekday
-        type: string
-        description: The day of the week the date falls on.
-      - name: already_passed
-        type: boolean
+        description: How many matching shops are listed as open in the window.
+      - name: hours_unknown_count
+        type: integer
+        description: How many matching shops have no opening hours recorded.
+      - name: closed_count
+        type: integer
+        description: How many matching shops are closed for the whole window.
+      - name: shop_kinds
+        type: array
+        item_type: string
+        description: The kinds of shop looked for, worked out from the interests.
+      - name: interests_not_matched
+        type: array
+        item_type: string
+        description: Interests that no kind of shop could be found for.
 
 # ── API keys your app needs (this example needs none) ────────────────────────
 #
